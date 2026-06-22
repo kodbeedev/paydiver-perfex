@@ -3,20 +3,20 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Public webhook endpoint for the Jomabee Perfex gateway — by Kodbee.
+ * Public webhook endpoint for the Paydiver Perfex gateway — by Kodbee.
  *
- * URL: <site>/jomabee_gateway/jomabee_gateway/webhook
+ * URL: <site>/paydiver_gateway/paydiver_gateway/webhook
  */
-class Jomabee_gateway extends App_Controller
+class Paydiver_gateway extends App_Controller
 {
     public function webhook()
     {
         $raw = file_get_contents('php://input') ?: '';
-        $signature = $_SERVER['HTTP_X_JOMABEE_SIGNATURE'] ?? '';
+        $signature = $_SERVER['HTTP_X_PAYDIVER_SIGNATURE'] ?? '';
 
-        $secret = get_option('jomabee_gateway_webhook_secret');
+        $secret = get_option('paydiver_gateway_webhook_secret');
         if (empty($secret)) {
-            $secret = get_option('jomabee_gateway_secret_key');
+            $secret = get_option('paydiver_gateway_secret_key');
         }
 
         if (empty($secret) || ! hash_equals(hash_hmac('sha256', $raw, $secret), (string) $signature)) {
@@ -32,8 +32,8 @@ class Jomabee_gateway extends App_Controller
             return;
         }
 
-        $jomabeeInvoice = (string) ($event['invoice_id'] ?? '');
-        $perfexInvoiceId = get_option('jomabee_map_' . $jomabeeInvoice);
+        $paydiverInvoice = (string) ($event['invoice_id'] ?? '');
+        $perfexInvoiceId = get_option('paydiver_map_' . $paydiverInvoice);
 
         if (empty($perfexInvoiceId)) {
             show_404();
@@ -54,9 +54,9 @@ class Jomabee_gateway extends App_Controller
         $this->payments_model->add([
             'invoiceid' => (int) $perfexInvoiceId,
             'amount' => (float) ($event['amount'] ?? 0),
-            'paymentmode' => 'jomabee_gateway',
+            'paymentmode' => 'paydiver_gateway',
             'transactionid' => (string) ($event['trx_id'] ?? ''),
-            'note' => 'Jomabee (' . ($event['gateway'] ?? '-') . ')',
+            'note' => 'Paydiver (' . ($event['gateway'] ?? '-') . ')',
         ]);
 
         echo 'ok';

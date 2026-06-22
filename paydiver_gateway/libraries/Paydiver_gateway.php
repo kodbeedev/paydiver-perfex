@@ -3,14 +3,14 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Jomabee payment gateway for Perfex CRM — by Kodbee (https://kodbee.com).
+ * Paydiver payment gateway for Perfex CRM — by Kodbee (https://kodbee.com).
  */
-class Jomabee_gateway extends App_gateway
+class Paydiver_gateway extends App_gateway
 {
     public function __construct()
     {
-        $this->setId('jomabee_gateway');
-        $this->setName('Jomabee');
+        $this->setId('paydiver_gateway');
+        $this->setName('Paydiver');
 
         parent::__construct();
 
@@ -38,7 +38,7 @@ class Jomabee_gateway extends App_gateway
     }
 
     /**
-     * Build the Jomabee invoice and redirect the customer to the hosted page.
+     * Build the Paydiver invoice and redirect the customer to the hosted page.
      *
      * @param array $data Perfex payment data (invoiceid, amount, ...).
      */
@@ -56,20 +56,20 @@ class Jomabee_gateway extends App_gateway
             'customer_name' => $invoice ? trim(($invoice->client->company ?? '')) : '',
             'customer_email' => $invoice->client->email ?? null,
             'redirect_url' => site_url('invoice/' . $data['invoiceid']),
-            'callback_url' => site_url('jomabee_gateway/jomabee_gateway/webhook'),
+            'callback_url' => site_url('paydiver_gateway/paydiver_gateway/webhook'),
         ];
 
         $response = $this->http($base . '/api/v1/payment/create', $payload);
 
         if (! $response || empty($response['data']['payment_url']) || empty($response['data']['invoice_id'])) {
-            set_alert('warning', 'Jomabee payment could not be started.');
+            set_alert('warning', 'Paydiver payment could not be started.');
             redirect(site_url('invoice/' . $data['invoiceid']));
 
             return;
         }
 
-        // Map Jomabee invoice -> Perfex invoice for the webhook.
-        update_option('jomabee_map_' . $response['data']['invoice_id'], (string) $data['invoiceid']);
+        // Map Paydiver invoice -> Perfex invoice for the webhook.
+        update_option('paydiver_map_' . $response['data']['invoice_id'], (string) $data['invoiceid']);
 
         redirect($response['data']['payment_url']);
     }
